@@ -1,9 +1,8 @@
 import { IMapPart, Map } from '../map/map';
 import { Camera } from './camera';
-import { TilesSources } from '../collections/tiles';
 import { mapConfig } from './map-config';
-import { EnemiesSources } from '../collections/enemies';
-import { StarsSources } from '../collections/stars';
+
+export const type = ['black', 'gray', 'lightblue', 'red', 'brown'];
 
 export class Scene {
   constructor() {}
@@ -14,15 +13,16 @@ export class Scene {
 
     renderer.save();
     camera.render(renderer, size);
+    let fromX, toX, fromY, toY;
 
-    // Green highlight
-    if (interaction.pressed) {
+    // Highlight
+    if (interaction.pressed && !interaction.addMovableObject) {
       renderer.save();
-      renderer.fillStyle = 'lightgreen';
-      let fromX = (interaction.current.x >= interaction.start.x ? interaction.start.x : interaction.current.x);
-      let toX = (interaction.current.x >= interaction.start.x ? interaction.current.x : interaction.start.x);
-      let fromY = (interaction.current.y >= interaction.start.y ? interaction.start.y : interaction.current.y);
-      let toY = (interaction.current.y >= interaction.start.y ? interaction.current.y : interaction.start.y);
+      renderer.fillStyle = type[interaction.action.subType];
+      fromX = (interaction.current.x >= interaction.start.x ? interaction.start.x : interaction.current.x);
+      toX = (interaction.current.x >= interaction.start.x ? interaction.current.x : interaction.start.x);
+      fromY = (interaction.current.y >= interaction.start.y ? interaction.start.y : interaction.current.y);
+      toY = (interaction.current.y >= interaction.start.y ? interaction.current.y : interaction.start.y);
       for (let i = fromX; i <= toX; i++) {
         for (let j = fromY; j <= toY; j++) {
           renderer.beginPath();
@@ -36,83 +36,120 @@ export class Scene {
 
     // Map
     renderer.save();
-    let image;
     map.all.forEach((mapPart: IMapPart) => {
-      // Should be fixed;
-      let startY = mapPart.y + mapPart.h;
       renderer.beginPath();
-      if (mapPart.h === 1) {
-        if (mapPart.w === 1) {
-          renderer.drawImage(
-            TilesSources[mapPart.type].lSingleTile.image,
-            mapPart.x * mapConfig.gridSize,
-            size.height - startY * mapConfig.gridSize,
-            mapConfig.gridSize,
-            mapConfig.gridSize
-          );
-        } else {
-          for (let i = 0; i < mapPart.w; i++) {
-            if (i === 0) {
-              image = TilesSources[mapPart.type].lLeftTile.image;
-            } else if (i === mapPart.w - 1) {
-              image = TilesSources[mapPart.type].lRightTile.image;
-            } else {
-              image = TilesSources[mapPart.type].lMiddleTile.image;
-            }
-            renderer.drawImage(
-              image,
-              (mapPart.x + i) * mapConfig.gridSize,
-              size.height - startY * mapConfig.gridSize,
-              mapConfig.gridSize,
-              mapConfig.gridSize
-            );
-          }
-        }
-      } else {
-        for (let j = 0; j < mapPart.h; j++) {
-          if (j === 0) {
-            if (mapPart.w === 1) {
-              renderer.drawImage(
-                TilesSources[mapPart.type].hSingleTile.image,
-                mapPart.x * mapConfig.gridSize,
-                size.height - startY * mapConfig.gridSize,
-                mapConfig.gridSize,
-                mapConfig.gridSize
-              );
-            } else {
-              for (let i = 0; i < mapPart.w; i++) {
-                if (i === 0) {
-                  image = TilesSources[mapPart.type].hLeftTile.image;
-                } else if (i === mapPart.w - 1) {
-                  image = TilesSources[mapPart.type].hRightTile.image;
-                } else {
-                  image = TilesSources[mapPart.type].hMiddleTile.image;
-                }
-                renderer.drawImage(
-                  image,
-                  (mapPart.x + i) * mapConfig.gridSize,
-                  size.height - startY * mapConfig.gridSize,
-                  mapConfig.gridSize,
-                  mapConfig.gridSize
-                );
-              }
-            }
-          } else {
-            for (let i = 0; i < mapPart.w; i++) {
-              renderer.drawImage(
-                TilesSources[mapPart.type].hFillTile.image,
-                (mapPart.x + i) * mapConfig.gridSize,
-                size.height - (startY - j) * mapConfig.gridSize,
-                mapConfig.gridSize,
-                mapConfig.gridSize
-              );
-            }
-          }
-        }
-      }
+      renderer.fillStyle = type[mapPart.type];
+      renderer.fillRect(
+          mapPart.x * mapConfig.gridSize,
+          size.height - (mapPart.y + mapPart.h) * mapConfig.gridSize,
+          mapPart.w * mapConfig.gridSize,
+          mapPart.h * mapConfig.gridSize);
       renderer.closePath();
+
+      if (mapPart.d) {
+        renderer.beginPath();
+        renderer.globalAlpha = .5;
+        renderer.fillStyle = type[mapPart.type];
+        renderer.fillRect(
+            (mapPart.x + mapPart.d.x) * mapConfig.gridSize,
+            size.height - ((mapPart.y + mapPart.d.y) + mapPart.h) * mapConfig.gridSize,
+            mapPart.w * mapConfig.gridSize,
+            mapPart.h * mapConfig.gridSize);
+        renderer.closePath();
+
+        renderer.beginPath();
+        renderer.strokeStyle = 'black';
+        renderer.moveTo(mapPart.x * mapConfig.gridSize + (mapPart.w * mapConfig.gridSize / 2),
+            size.height - (mapPart.y + mapPart.h) * mapConfig.gridSize + (mapPart.h * mapConfig.gridSize) / 2);
+        renderer.lineTo((mapPart.x + mapPart.d.x) * mapConfig.gridSize + (mapPart.w * mapConfig.gridSize / 2),
+            size.height - ((mapPart.y + mapPart.d.y) + mapPart.h) * mapConfig.gridSize + (mapPart.h * mapConfig.gridSize) / 2);
+        renderer.stroke();
+        renderer.closePath();
+
+        renderer.globalAlpha = 1;
+
+      }
     });
     renderer.restore();
+
+    // renderer.save();
+    // let image;
+    // map.all.forEach((mapPart: IMapPart) => {
+    //   // Should be fixed;
+    //   let startY = mapPart.y + mapPart.h;
+    //   renderer.beginPath();
+    //   if (mapPart.h === 1) {
+    //     if (mapPart.w === 1) {
+    //       renderer.drawImage(
+    //         TilesSources[mapPart.type].lSingleTile.image,
+    //         mapPart.x * mapConfig.gridSize,
+    //         size.height - startY * mapConfig.gridSize,
+    //         mapConfig.gridSize,
+    //         mapConfig.gridSize
+    //       );
+    //     } else {
+    //       for (let i = 0; i < mapPart.w; i++) {
+    //         if (i === 0) {
+    //           image = TilesSources[mapPart.type].lLeftTile.image;
+    //         } else if (i === mapPart.w - 1) {
+    //           image = TilesSources[mapPart.type].lRightTile.image;
+    //         } else {
+    //           image = TilesSources[mapPart.type].lMiddleTile.image;
+    //         }
+    //         renderer.drawImage(
+    //           image,
+    //           (mapPart.x + i) * mapConfig.gridSize,
+    //           size.height - startY * mapConfig.gridSize,
+    //           mapConfig.gridSize,
+    //           mapConfig.gridSize
+    //         );
+    //       }
+    //     }
+    //   } else {
+    //     for (let j = 0; j < mapPart.h; j++) {
+    //       if (j === 0) {
+    //         if (mapPart.w === 1) {
+    //           renderer.drawImage(
+    //             TilesSources[mapPart.type].hSingleTile.image,
+    //             mapPart.x * mapConfig.gridSize,
+    //             size.height - startY * mapConfig.gridSize,
+    //             mapConfig.gridSize,
+    //             mapConfig.gridSize
+    //           );
+    //         } else {
+    //           for (let i = 0; i < mapPart.w; i++) {
+    //             if (i === 0) {
+    //               image = TilesSources[mapPart.type].hLeftTile.image;
+    //             } else if (i === mapPart.w - 1) {
+    //               image = TilesSources[mapPart.type].hRightTile.image;
+    //             } else {
+    //               image = TilesSources[mapPart.type].hMiddleTile.image;
+    //             }
+    //             renderer.drawImage(
+    //               image,
+    //               (mapPart.x + i) * mapConfig.gridSize,
+    //               size.height - startY * mapConfig.gridSize,
+    //               mapConfig.gridSize,
+    //               mapConfig.gridSize
+    //             );
+    //           }
+    //         }
+    //       } else {
+    //         for (let i = 0; i < mapPart.w; i++) {
+    //           renderer.drawImage(
+    //             TilesSources[mapPart.type].hFillTile.image,
+    //             (mapPart.x + i) * mapConfig.gridSize,
+    //             size.height - (startY - j) * mapConfig.gridSize,
+    //             mapConfig.gridSize,
+    //             mapConfig.gridSize
+    //           );
+    //         }
+    //       }
+    //     }
+    //   }
+    //   renderer.closePath();
+    // });
+    // renderer.restore();
 
     // Enemies
     // renderer.save();
@@ -174,21 +211,21 @@ export class Scene {
       size.height - interaction.current.y * mapConfig.gridSize);
     renderer.beginPath();
     if (interaction.action.type === 0) {
-      renderer.drawImage(TilesSources[interaction.action.subType].lSingleTile.image,
-        0, -mapConfig.gridSize, mapConfig.gridSize, mapConfig.gridSize);
+      renderer.fillStyle = type[interaction.action.subType];
+      renderer.fillRect(0, -mapConfig.gridSize, mapConfig.gridSize, mapConfig.gridSize);
     }
-    if (interaction.action.type === 1) {
-      renderer.drawImage(EnemiesSources[interaction.action.subType][0].image,
-        5, -mapConfig.gridSize + 5,
-        EnemiesSources[interaction.action.subType][0].width,
-        EnemiesSources[interaction.action.subType][0].height);
-    }
-    if (interaction.action.type === 2) {
-      renderer.drawImage(StarsSources.star.image,
-        8, -mapConfig.gridSize + 10,
-        StarsSources.star.width,
-        StarsSources.star.height);
-    }
+    // if (interaction.action.type === 1) {
+    //   renderer.drawImage(EnemiesSources[interaction.action.subType][0].image,
+    //     5, -mapConfig.gridSize + 5,
+    //     EnemiesSources[interaction.action.subType][0].width,
+    //     EnemiesSources[interaction.action.subType][0].height);
+    // }
+    // if (interaction.action.type === 2) {
+    //   renderer.drawImage(StarsSources.star.image,
+    //     8, -mapConfig.gridSize + 10,
+    //     StarsSources.star.width,
+    //     StarsSources.star.height);
+    // }
     renderer.closePath();
     renderer.restore();
 

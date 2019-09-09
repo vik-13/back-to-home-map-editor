@@ -1,3 +1,5 @@
+import { Vector } from '../libs/vector';
+
 export class Map {
   currentVersion = 0.2;
   all: any[] = [];
@@ -14,17 +16,7 @@ export class Map {
   }
 
   inject(source: any) {
-    const data = typeof source === 'string' ? JSON.parse(source) : source || {};
-    if (data.version === this.currentVersion) {
-      this.all = [];
-      // TODO: Should be removed soon;
-      data.size = data.size ? data.size : 100;
-    } else if (data.version === 0.1) {
-      // TODO: do something with old maps;
-    } else {
-      console.log('[Map loader] You have old version of map or empty map. It cannot be loaded;');
-      this.all = []
-    }
+    this.all = typeof source === 'string' ? JSON.parse(source) : source || [];
   };
 
   reset() {
@@ -39,9 +31,23 @@ export class Map {
     let fromY = (interaction.current.y <= interaction.start.y ? interaction.start.y : interaction.current.y);
     let toX = (interaction.current.x >= interaction.start.x ? interaction.current.x : interaction.start.x);
     let toY = (interaction.current.y <= interaction.start.y ? interaction.current.y : interaction.start.y);
-    console.log(fromX, toY, toX - fromX + 1, fromY - toY + 1);
     this.all.push(new MapPart(interaction.action.subType, fromX, toY,toX - fromX + 1,  fromY - toY + 1));
     localStorage.setItem('lastMap', JSON.stringify(this.all));
+  }
+
+  makeItMovable(interaction: any) {
+    let selected: any = null;
+    this.all.forEach((mapPart: MapPart) => {
+      if (mapPart.x <= interaction.start.x &&
+          mapPart.x + mapPart.w > interaction.start.x &&
+          mapPart.y <= interaction.start.y &&
+          mapPart.y + mapPart.h > interaction.start.y) {
+        selected = mapPart;
+      }
+    });
+    if (!selected) return;
+
+    selected.d = new Vector(interaction.end.x - interaction.start.x, interaction.end.y - interaction.start.y);
   }
 
   addEnemy(coords: any, type: number = 0) {
@@ -87,8 +93,8 @@ export class Map {
     this.all.forEach((mapPart: MapPart) => {
       if (mapPart.x <= coords.x &&
         mapPart.x + mapPart.w > coords.x &&
-        mapPart.y >= coords.y &&
-        mapPart.y - mapPart.h < coords.y) {
+        mapPart.y <= coords.y &&
+        mapPart.y + mapPart.h > coords.y) {
         toRemove = mapPart;
       }
     });
@@ -130,5 +136,6 @@ export interface IMapPart {
   x: number,
   y: number,
   w: number,
-  h: number
+  h: number,
+  d?: Vector
 }

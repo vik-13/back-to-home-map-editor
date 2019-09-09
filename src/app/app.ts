@@ -21,6 +21,7 @@ export class App {
     right: false,
     up: false,
     down: false,
+    addMovableObject: false
   };
   size = {
     width: 0,
@@ -87,7 +88,7 @@ export class App {
   }
 
   handleMouseDown(event: MouseEvent) {
-    if (event.button === 0) {
+    if (event.button === 0 && !this.interaction.addMovableObject) {
       if (this.interaction.action.type === 1) {
         this.map.addEnemy(new Vector(
           Math.floor((event.clientX - this.camera.position.x) / 40),
@@ -106,6 +107,13 @@ export class App {
         ));
         this.interaction.current.apply(this.interaction.start.get());
       }
+    } else if (event.button === 0 && this.interaction.addMovableObject) {
+      this.interaction.pressed = true;
+      this.interaction.start.apply(new Vector(
+          Math.floor((event.clientX - this.camera.position.x) / 40),
+          Math.floor((this.size.height - (event.clientY - this.camera.position.y)) / 40)
+      ));
+      this.interaction.current.apply(this.interaction.start.get());
     } else if (event.button === 2) {
       this.map.remove(new Vector(
         Math.floor((event.clientX - this.camera.position.x) / 40),
@@ -122,14 +130,18 @@ export class App {
   }
 
   handleMouseUp() {
-    if (this.interaction.pressed) {
+    if (this.interaction.pressed && !this.interaction.addMovableObject) {
       this.interaction.pressed = false;
       this.interaction.end.apply(this.interaction.current.get());
       this.map.add(this.interaction);
+    } else if (this.interaction.addMovableObject) {
+      this.interaction.pressed = false;
+      this.interaction.end.apply(this.interaction.current.get());
+      this.map.makeItMovable(this.interaction);
     }
   }
 
-  handleKeyDown(event: any) {
+  handleKeyDown(event: KeyboardEvent) {
     if (event.keyCode === 37 || event.keyCode === 65) {
       this.interaction.left = true;
     }
@@ -142,21 +154,28 @@ export class App {
     if (event.keyCode === 40 || event.keyCode === 83) {
       this.interaction.down = true;
     }
-    if (event.keyCode === 86) { // V
+    if (event.key === 'z') {
+      this.interaction.action.type = 0;
+      this.interaction.action.subType = 0;
+    }
+    if (event.key === 'x') {
       this.interaction.action.type = 0;
       this.interaction.action.subType = 1;
     }
-    if (event.keyCode === 88) { // X
-      this.interaction.action.type = 1;
-      this.interaction.action.subType = 0;
+    if (event.key === 'c') {
+      this.interaction.action.type = 0;
+      this.interaction.action.subType = 2;
     }
-    if (event.keyCode === 67) { // C
-      this.interaction.action.type = 1;
-      this.interaction.action.subType = 1;
+    if (event.key === 'v') {
+      this.interaction.action.type = 0;
+      this.interaction.action.subType = 3;
     }
-    if (event.keyCode === 90) { // Z
-      this.interaction.action.type = 2;
-      this.interaction.action.subType = 0;
+    if (event.key === 'b') {
+      this.interaction.action.type = 0;
+      this.interaction.action.subType = 4;
+    }
+    if (event.key === 'q') {
+      this.interaction.addMovableObject = true;
     }
     if (event.keyCode === 78) {
       if (confirm('Do you really want to reset whole map?')) {
@@ -169,7 +188,7 @@ export class App {
   }
 
 
-  handleKeyUp(event: any) {
+  handleKeyUp(event: KeyboardEvent) {
     if (event.keyCode === 37 || event.keyCode === 65) {
       this.interaction.left = false;
     }
@@ -182,24 +201,27 @@ export class App {
     if (event.keyCode === 40 || event.keyCode === 83) {
       this.interaction.down = false;
     }
-    if (event.keyCode === 88 || event.keyCode === 67) {
-      if (this.interaction.action.type === 1) {
-        this.interaction.action.type = 0;
-        this.interaction.action.subType = 0;
-      }
+    if (event.key === 'q') {
+      this.interaction.addMovableObject = false;
     }
-    if (event.keyCode === 90) {
-      if (this.interaction.action.type === 2) {
-        this.interaction.action.type = 0;
-        this.interaction.action.subType = 0;
-      }
-    }
-    if (event.keyCode === 86) {
-      if (this.interaction.action.type === 0) {
-        this.interaction.action.type = 0;
-        this.interaction.action.subType = 0;
-      }
-    }
+    // if (event.keyCode === 88 || event.keyCode === 67) {
+    //   if (this.interaction.action.type === 1) {
+    //     this.interaction.action.type = 0;
+    //     this.interaction.action.subType = 0;
+    //   }
+    // }
+    // if (event.keyCode === 90) {
+    //   if (this.interaction.action.type === 2) {
+    //     this.interaction.action.type = 0;
+    //     this.interaction.action.subType = 0;
+    //   }
+    // }
+    // if (event.keyCode === 86) {
+    //   if (this.interaction.action.type === 0) {
+    //     this.interaction.action.type = 0;
+    //     this.interaction.action.subType = 0;
+    //   }
+    // }
   }
 
   contextMenu(event: any) {
