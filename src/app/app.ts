@@ -65,7 +65,7 @@ export class App {
   }
 
   copy(e: any) {
-    e.clipboardData.setData('text/plain', JSON.stringify(this.map.all));
+    e.clipboardData.setData('text/plain', JSON.stringify(this.map.getMap()));
     e.preventDefault();
   }
 
@@ -174,10 +174,14 @@ export class App {
       this.interaction.action.type = 0;
       this.interaction.action.subType = 4;
     }
+    if (event.key === 'n') {
+      this.interaction.action.type = 0;
+      this.interaction.action.subType = 5;
+    }
     if (event.key === 'q') {
       this.interaction.addMovableObject = true;
     }
-    if (event.keyCode === 78) {
+    if (event.key === 't') {
       if (confirm('Do you really want to reset whole map?')) {
         this.map.reset();
       }

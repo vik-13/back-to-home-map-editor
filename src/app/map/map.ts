@@ -1,7 +1,19 @@
 import { Vector } from '../libs/vector';
 
+export class MapPart implements IMapPart {
+  constructor(public type = 0, public x: number, public y: number, public w: number, public h: number) {}
+}
+
+export interface IMapPart {
+  type: number,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  d?: Vector
+}
+
 export class Map {
-  currentVersion = 0.2;
   all: any[] = [];
   size = {
     x: 100,
@@ -15,8 +27,26 @@ export class Map {
     }
   }
 
+  getMap() {
+    return this.all.map((item) => {
+      const block = [item.type, item.x, item.y, item.w, item.h];
+      if (item.d) {
+        block.push(item.d.x);
+        block.push(item.d.y);
+      }
+      return block;
+    });
+  }
+
   inject(source: any) {
-    this.all = typeof source === 'string' ? JSON.parse(source) : source || [];
+    const tempMap = typeof source === 'string' ? JSON.parse(source) : source || [];
+    this.all = tempMap.map((item: any) => {
+      const block: IMapPart = new MapPart(item[0], item[1], item[2],item[3], item[4]);
+      if (typeof item[5] !== 'undefined') {
+        block.d = new Vector(item[5], item[6]);
+      }
+      return block;
+    });
   };
 
   reset() {
@@ -32,7 +62,7 @@ export class Map {
     let toX = (interaction.current.x >= interaction.start.x ? interaction.current.x : interaction.start.x);
     let toY = (interaction.current.y <= interaction.start.y ? interaction.current.y : interaction.start.y);
     this.all.push(new MapPart(interaction.action.subType, fromX, toY,toX - fromX + 1,  fromY - toY + 1));
-    localStorage.setItem('lastMap', JSON.stringify(this.all));
+    localStorage.setItem('lastMap', JSON.stringify(this.getMap()));
   }
 
   makeItMovable(interaction: any) {
@@ -48,6 +78,7 @@ export class Map {
     if (!selected) return;
 
     selected.d = new Vector(interaction.end.x - interaction.start.x, interaction.end.y - interaction.start.y);
+    localStorage.setItem('lastMap', JSON.stringify(this.getMap()));
   }
 
   addEnemy(coords: any, type: number = 0) {
@@ -100,7 +131,7 @@ export class Map {
     });
     if (toRemove) {
       this.all.splice(this.all.indexOf(toRemove), 1);
-      localStorage.setItem('lastMap', JSON.stringify(this.all));
+      localStorage.setItem('lastMap', JSON.stringify(this.getMap()));
     }
     // if (!toRemove) {
     //   this.all.enemies.forEach((mapPart: MapPart) => {
@@ -125,17 +156,4 @@ export class Map {
     //   }
     // }
   }
-}
-
-export class MapPart implements IMapPart {
-  constructor(public type = 0, public x: number, public y: number, public w: number, public h: number) {}
-}
-
-export interface IMapPart {
-  type: number,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  d?: Vector
 }
