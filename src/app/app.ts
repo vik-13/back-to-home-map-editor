@@ -178,6 +178,14 @@ export class App {
       this.interaction.action.type = 0;
       this.interaction.action.subType = 5;
     }
+    if (event.key === 'k') {
+      this.interaction.action.type = 0;
+      this.interaction.action.subType = 6;
+    }
+    if (event.key === 'l') {
+      this.interaction.action.type = 0;
+      this.interaction.action.subType = 7;
+    }
     if (event.key === 'q') {
       this.interaction.addMovableObject = true;
     }
