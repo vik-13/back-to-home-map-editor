@@ -2,7 +2,7 @@ import { IMapPart, Map } from '../map/map';
 import { Camera } from './camera';
 import { mapConfig } from './map-config';
 
-export const type = ['black', 'gray', 'lightblue', 'red', 'brown', 'green', 'pink', 'orange'];
+export const type = ['black', 'gray', 'lightblue', 'red', 'brown', 'green', 'pink', 'orange', 'darkblue'];
 
 export class Scene {
   constructor() {}
