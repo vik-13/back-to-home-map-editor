@@ -203,6 +203,11 @@ export class App {
     }
   }
 
+  setAction(index: number) {
+    this.interaction.action.type = 0;
+    this.interaction.action.subType = index;
+  }
+
 
   handleKeyUp(event: KeyboardEvent) {
     if (event.keyCode === 37 || event.keyCode === 65) {

@@ -19,9 +19,38 @@
 			width: 100%;
 			height: 100%;
 		}
+
+		#controls {
+			position: absolute;
+			top: 0;
+			left: 0;
+			display: flex;
+			flex-wrap: wrap;
+			width: 100%;
+		}
+
+		.control {
+			background: #eaeaea;
+			padding: 4px;
+			font-size: 10px;
+			cursor: pointer;
+			margin: 4px;
+		}
+
+		.control.active {
+			background: #aaaaaa;
+		}
 	</style>
 </head>
 <body>
 <div id="game-output"></div>
+<div id="controls">
+	<div class="control active" id="0">Hard block</div>
+	<div class="control" id="1">Simple block</div>
+	<div class="control" id="5">Spider</div>
+	<div class="control" id="6">Gun-Man</div>
+	<div class="control" id="7">Heli-Man</div>
+	<div class="control" id="8">Heli-Man empty</div>
+</div>
 </body>
 </html>
