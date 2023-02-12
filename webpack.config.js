@@ -1,38 +1,39 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
 
 module.exports = {
-	entry: './src/index.ts',
-	output: {
-		filename: 'bundle.js',
-		path: path.resolve(__dirname, 'dist')
+	mode: 'development',
+	entry: {
+		index: './src/index.ts',
 	},
 	devtool: 'inline-source-map',
 	devServer: {
-		contentBase: './dist'
+		static: './dist',
 	},
-	plugins: [
-		new CleanWebpackPlugin(['dist']),
-		new HtmlWebpackPlugin({
-			title: 'Back to home Map Editor',
-			template: './src/index.html'
-		})
-	],
 	module: {
 		rules: [
 			{
-				test: /\.tsx?$/,
+				test: /\.ts?$/,
 				use: 'ts-loader',
-				exclude: /node_modules/
+				exclude: /node_modules/,
 			},
-			{
-				test: /\.(png|svg|jpg|gif)$/,
-				use: ['file-loader']
-			}
-		]
+		],
 	},
 	resolve: {
-		extensions: [ '.tsx', '.ts', '.js' ]
-	}
+		extensions: ['.tsx', '.ts', '.js'],
+	},
+	plugins: [
+		new HtmlWebpackPlugin({
+			title: 'Triangle Man: Back To Home',
+			template: 'src/index.html'
+		}),
+	],
+	output: {
+		filename: '[name].bundle.js',
+		path: path.resolve(__dirname, 'dist'),
+		clean: true,
+	},
+	optimization: {
+		runtimeChunk: 'single',
+	},
 };
